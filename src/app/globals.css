@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* ── Base surfaces ── */
+  --bg-app:        #F7F7F9;
+  --bg-sidebar:    #18181C;
+  --bg-card:       #FFFFFF;
+  --bg-card-soft:  #F2F2F5;
+
+  /* ── Gradient signature (hero cards) ── */
+  --gradient-pink-start: #FCE8F3;
+  --gradient-pink-end:   #E8E6FB;
+  --gradient-blue-start: #E7F0FE;
+  --gradient-blue-end:   #EFE9FE;
+
+  /* ── Text ── */
+  --text-primary:   #131316;
+  --text-secondary: #6B6B76;
+  --text-muted:     #A3A3AD;
+  --text-on-dark:   #F4F4F6;
+
+  /* ── Accent / status ── */
+  --accent-black:   #131316;
+  --status-success-bg: #DDF5E4;
+  --status-success-text: #1B8A4B;
+  --status-warning-bg: #FEF3DC;
+  --status-warning-text: #B7791F;
+  --status-danger-bg:  #FCE4E4;
+  --status-danger-text: #C8302E;
+  --status-info-bg:    #E5EEFE;
+  --status-info-text:  #2563D4;
+
+  /* ── Borders ── */
+  --border-subtle: #ECECF0;
+  --border-default: #E1E1E7;
+
+  /* ── Radius scale ── */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-bg-app: var(--bg-app);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-card: var(--bg-card);
+  --font-sans: var(--font-display);
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-black);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "field-erp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "seed": "dotenvx run --env-file=.env.local -- tsx scripts/seed.ts",
+    "seed:payroll": "tsx --env-file=.env.local scripts/seed-payroll.ts",
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^2.0.0",
+    "@types/leaflet": "^1.9.21",
+    "@types/multer": "^2.1.0",
+    "@types/pg": "^8.20.0",
+    "better-auth": "^1.6.18",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "jspdf": "^4.2.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.21.0",
+    "next": "16.2.9",
+    "pg": "^8.21.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-leaflet": "^5.0.0",
+    "sharp": "^0.35.2",
+    "sonner": "^2.0.7",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "tsx": "^4.22.4",
+    "typescript": "^5"
+  }
+}

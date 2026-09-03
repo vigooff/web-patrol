@@ -46,7 +46,7 @@ export default function SosPage() {
 
   return (
     <div>
-      <Topbar userName="Admin" userInitial="A" notifCount={openCount} />
+      <Topbar userName="Admin" userInitial="A" />
       <PageHeader
         title="Monitor SOS Darurat"
         description="Laporan darurat dari pegawai lapangan"

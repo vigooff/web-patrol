@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Camera, MapPin, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useFetch } from '@/lib/hooks/useFetch';
 import { PhotoCapture } from '@/components/ui/PhotoCapture';
+import { getCurrentPosition, type BridgePosition } from '@/lib/native/geolocation';
 
 interface TodayAttendance {
   id: string;
@@ -57,13 +58,13 @@ export default function EmployeeAttendancePage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage]           = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [currentPos, setCurrentPos]     = useState<GeolocationPosition | null>(null);
+  const [currentPos, setCurrentPos]     = useState<BridgePosition | null>(null);
   const [photoBase64, setPhotoBase64]   = useState<string>('placeholder');
   const [photoUrl,    setPhotoUrl]      = useState<string>('');
 
   // Ambil posisi GPS saat halaman dibuka
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
+    getCurrentPosition(
       (pos) => setCurrentPos(pos),
       () => setMessage({ type: 'error', text: 'Tidak bisa mendapatkan lokasi GPS. Pastikan izin lokasi diaktifkan.' }),
       { enableHighAccuracy: true, timeout: 10000 },

@@ -113,7 +113,7 @@ export default function PayrollPage() {
 
   return (
     <div>
-      <Topbar notifCount={0} />
+      <Topbar />
       <PageHeader
         title="Penggajian (Payroll)"
         description="Proses dan kelola slip gaji karyawan"

@@ -55,7 +55,8 @@ export default function EmployeesPage() {
       const matchesSearch =
         query === '' ||
         emp.name.toLowerCase().includes(query) ||
-        emp.email.toLowerCase().includes(query);
+        emp.email.toLowerCase().includes(query) ||
+        (emp.employee_id?.toLowerCase().includes(query) ?? false);
 
       const matchesStatus =
         statusFilter === 'all' ||
@@ -71,7 +72,7 @@ export default function EmployeesPage() {
 
   return (
     <div>
-      <Topbar userName="Admin" userInitial="A" notifCount={0} />
+      <Topbar userName="Admin" userInitial="A" />
 
       <PageHeader
         title="Manajemen Pegawai"

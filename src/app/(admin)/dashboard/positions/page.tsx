@@ -261,7 +261,7 @@ export default function PositionsPage() {
 
   return (
     <div>
-      <Topbar notifCount={0} />
+      <Topbar />
 
       <PageHeader
         title="Data Jabatan"

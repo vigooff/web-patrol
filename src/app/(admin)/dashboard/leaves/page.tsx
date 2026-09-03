@@ -48,7 +48,7 @@ export default function LeavesPage() {
 
   return (
     <div>
-      <Topbar userName="Admin" userInitial="A" notifCount={pending} />
+      <Topbar userName="Admin" userInitial="A" />
       <PageHeader
         title="Pengajuan Izin & Cuti"
         description={`${pending} pengajuan menunggu persetujuan`}

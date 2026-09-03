@@ -60,7 +60,7 @@ export default function PatrolDetailPage() {
   if (isLoading) {
     return (
       <div>
-        <Topbar notifCount={0} />
+        <Topbar />
         <div className="h-96 rounded-3xl animate-pulse mt-6" style={{ background: 'var(--bg-card-soft)' }} />
       </div>
     );
@@ -69,7 +69,7 @@ export default function PatrolDetailPage() {
   if (!patrol) {
     return (
       <div>
-        <Topbar notifCount={0} />
+        <Topbar />
         <p className="mt-10 text-center" style={{ color: 'var(--text-muted)' }}>Sesi patroli tidak ditemukan</p>
       </div>
     );
@@ -81,7 +81,7 @@ export default function PatrolDetailPage() {
 
   return (
     <div>
-      <Topbar notifCount={0} />
+      <Topbar />
       <PageHeader
         title={`Patroli ${patrol.id.slice(0, 8).toUpperCase()}`}
         description={`${formatDate(patrol.start_time)} · ${formatTime(patrol.start_time)}`}

@@ -33,7 +33,7 @@ export default function PatrolPage() {
 
   return (
     <div>
-      <Topbar notifCount={0} />
+      <Topbar />
       <PageHeader
         title="Monitor Patroli"
         description="Pantau sesi patroli pegawai secara real-time"

@@ -1,0 +1,68 @@
+name: Build Android Debug APK
+
+# Jalan otomatis tiap push ke branch main yang menyentuh source app atau
+# folder android/, dan bisa juga dipicu manual dari tab Actions di GitHub.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+  workflow_dispatch: {}
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Java (JDK 17 — dibutuhkan Android Gradle Plugin 8.x)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          # compileSdk/targetSdk 36 dipakai project ini (lihat android/variables.gradle) —
+          # pastikan platform ini terinstall walau runner sudah punya SDK bawaan.
+          packages: 'platforms;android-36 build-tools;36.0.0'
+
+      - name: Sync Capacitor (copy config & plugin native ke project Android)
+        run: npx cap sync android
+
+      - name: Beri izin eksekusi Gradle wrapper
+        run: chmod +x android/gradlew
+
+      - name: Build APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-patrol-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+  # TODO (belum diaktifkan): job build-release-aab untuk generate .aab yang
+  # ditandatangani (signed), dibutuhkan pas submit ke Play Store. Perlu:
+  #   1. Keystore production (di-generate sekali, disimpan sebagai
+  #      GitHub Secret dalam bentuk base64 — JANGAN pernah commit file
+  #      .jks/.keystore langsung ke repo).
+  #   2. Secrets: KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+  # Tambahkan job ini setelah keystore production dibuat.

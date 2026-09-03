@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Field ERP</string>
+    <string name="title_activity_main">Field ERP</string>
+    <string name="package_name">com.webpatrol.app</string>
+    <string name="custom_url_scheme">com.webpatrol.app</string>
+</resources>

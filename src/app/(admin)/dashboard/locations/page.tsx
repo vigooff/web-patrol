@@ -29,7 +29,6 @@ export default function LocationsPage() {
       <Topbar
         userName={userName}
         userInitial={userName.charAt(0).toUpperCase()}
-        notifCount={0}
       />
 
       <PageHeader

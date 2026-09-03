@@ -51,7 +51,7 @@ export default function AttendancePage() {
 
   return (
     <div>
-      <Topbar userName="Admin" userInitial="A" notifCount={0} />
+      <Topbar userName="Admin" userInitial="A" />
       <PageHeader
         title="Rekapitulasi Presensi"
         description="Pantau kehadiran seluruh pegawai"

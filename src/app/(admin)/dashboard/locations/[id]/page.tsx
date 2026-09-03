@@ -90,7 +90,7 @@ export default function LocationDetailPage() {
   if (isLoading) {
     return (
       <div>
-        <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} notifCount={0} />
+        <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} />
         <div className="h-96 rounded-3xl animate-pulse mt-6" style={{ background: 'var(--bg-card-soft)' }} />
       </div>
     );
@@ -99,7 +99,7 @@ export default function LocationDetailPage() {
   if (!location) {
     return (
       <div>
-        <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} notifCount={0} />
+        <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} />
         <p className="mt-10 text-center" style={{ color: 'var(--text-muted)' }}>Lokasi tidak ditemukan</p>
       </div>
     );
@@ -107,7 +107,7 @@ export default function LocationDetailPage() {
 
   return (
     <div>
-      <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} notifCount={0} />
+      <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} />
 
       <PageHeader
         title={isEditing ? 'Edit Lokasi' : location.name}

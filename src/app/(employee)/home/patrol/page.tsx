@@ -6,6 +6,7 @@ import {
   Play, Square, ScanLine, CheckCircle2,
   Circle, MapPin, Clock, AlertCircle, Navigation,
 } from 'lucide-react';
+import { watchPosition, clearWatch } from '@/lib/native/geolocation';
 
 interface Location {
   id: string;
@@ -60,14 +61,28 @@ export default function EmployeePatrolPage() {
   const totalCount = checkpoints.length;
   const progress   = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
-  // GPS watcher
+  // GPS watcher — pakai bridge karena di native app watchId resolve-nya async
   useEffect(() => {
-    const watchId = navigator.geolocation?.watchPosition(
+    let watchId: string | number | null = null;
+    let cancelled = false;
+
+    watchPosition(
       (pos) => setCurrentPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
       { enableHighAccuracy: true },
-    );
-    return () => { if (watchId) navigator.geolocation?.clearWatch(watchId); };
+    ).then((id) => {
+      if (cancelled) {
+        // effect sudah di-cleanup sebelum promise resolve — langsung clear
+        clearWatch(id);
+      } else {
+        watchId = id;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      clearWatch(watchId);
+    };
   }, []);
 
   // Timer & GPS batch tracker saat patroli aktif

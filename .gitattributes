@@ -1,0 +1,10 @@
+# Paksa LF untuk script shell — WAJIB, kalau kebalik jadi CRLF,
+# GitHub Actions (Linux) bakal gagal jalanin ./gradlew.
+android/gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows-only script, aman pakai CRLF
+android/gradlew.bat text eol=crlf
+
+# Biarkan git auto-detect untuk file lainnya
+* text=auto

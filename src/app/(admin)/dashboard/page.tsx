@@ -42,7 +42,6 @@ export default function DashboardPage() {
       <Topbar
         userName="Admin"
         userInitial="A"
-        notifCount={displayStats.sos_aktif}
       />
 
       {/* Stat cards */}

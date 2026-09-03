@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Flame, Car, ShieldAlert, HeartPulse, MapPin, CheckCircle2 } from 'lucide-react';
+import { getCurrentPosition } from '@/lib/native/geolocation';
 
 const categories = [
   { id: 'FIRE',     icon: Flame,       label: 'Kebakaran' },
@@ -19,7 +20,7 @@ export default function EmployeeSosPage() {
   const [coords,      setCoords]      = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
+    getCurrentPosition(
       (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setErrorMsg('Tidak bisa mendapatkan lokasi GPS. Laporan tetap bisa dikirim tanpa koordinat akurat.'),
       { enableHighAccuracy: true, timeout: 10000 },

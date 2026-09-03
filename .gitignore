@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Android / Capacitor — folder android/ TETAP di-commit (best practice Capacitor),
+# tapi build output, config lokal, dan signing key WAJIB di-ignore.
+/android/app/build/
+/android/build/
+/android/.gradle/
+/android/local.properties
+/android/.idea/
+/android/*.iml
+/android/app/*.iml
+/android/captures/
+/android/app/release/
+
+# Signing key — JANGAN PERNAH commit ini, sekali bocor harus generate app baru dari nol
+*.jks
+*.keystore
+android/keystore.properties

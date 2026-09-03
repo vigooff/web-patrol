@@ -105,7 +105,7 @@ export default function NewLocationPage() {
 
   return (
     <div>
-      <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} notifCount={0} />
+      <Topbar userName={userName} userInitial={userName.charAt(0).toUpperCase()} />
 
       <PageHeader
         title="Tambah Lokasi Baru"

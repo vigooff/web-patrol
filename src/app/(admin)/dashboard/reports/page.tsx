@@ -68,7 +68,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <Topbar notifCount={0} />
+      <Topbar />
       <PageHeader title="Laporan" description="Unduh laporan dalam format Excel" />
 
       {/* Month/year selector */}

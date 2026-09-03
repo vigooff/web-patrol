@@ -30,7 +30,7 @@ const labelClass = 'text-xs font-semibold';
 
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModalProps) {
   // Data dropdown — cuma jalan sekali tiap modal fetch ulang (useFetch re-run tiap mount)
-  const { data: roles } = useFetch<Role[]>('/api/v1/roles');
+  const { data: roles, isLoading: rolesLoading, error: rolesError } = useFetch<Role[]>('/api/v1/roles');
   const { data: positions } = useFetch<Position[]>('/api/v1/positions');
 
   const [form, setForm] = useState({
@@ -167,12 +167,24 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
               style={inputStyle}
               required
             >
-              <option value="">Pilih role...</option>
+              <option value="">
+                {rolesLoading ? 'Memuat role...' : 'Pilih role...'}
+              </option>
               {roles?.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
             {errors.role_id && <p className="text-xs mt-1" style={{ color: 'var(--status-danger-text)' }}>{errors.role_id}</p>}
+            {!rolesLoading && rolesError && (
+              <p className="text-xs mt-1" style={{ color: 'var(--status-danger-text)' }}>
+                Gagal memuat daftar role. Coba tutup dan buka lagi form ini.
+              </p>
+            )}
+            {!rolesLoading && !rolesError && roles?.length === 0 && (
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                Belum ada role pegawai. Buat role dulu di menu Posisi/Role.
+              </p>
+            )}
           </div>
 
           <div>

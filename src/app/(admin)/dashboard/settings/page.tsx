@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <Topbar userName={user?.name ?? 'Admin'} userInitial={(user?.name ?? 'A').charAt(0).toUpperCase()} notifCount={0} />
+      <Topbar userName={user?.name ?? 'Admin'} userInitial={(user?.name ?? 'A').charAt(0).toUpperCase()} />
       <PageHeader title="Pengaturan" />
 
       <div className="max-w-xl">

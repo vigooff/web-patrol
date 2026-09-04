@@ -16,8 +16,8 @@ const config: CapacitorConfig = {
     // TODO: ganti ke domain production sebelum build release.
     // Untuk development lokal, override lewat capacitor.config.local.ts
     // atau env var — lihat catatan di lib/native/platform.ts
-    url: 'https://webpatrol.example.com',
-    cleartext: false, // wajib HTTPS di production
+    url: 'http://localhost:3000',
+    cleartext: true, // wajib HTTPS di production
     androidScheme: 'https',
   },
 

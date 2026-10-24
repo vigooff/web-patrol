@@ -82,8 +82,8 @@ export function Topbar({
   const hasResults = results && (results.users.length > 0 || results.locations.length > 0);
 
   return (
-    <header className="flex items-center justify-between gap-4 mb-8">
-      <div ref={searchRef} className="relative flex-1 max-w-sm">
+<header className="flex w-full min-w-0 items-center justify-between gap-2 sm:gap-4 mb-5 md:mb-8">
+     <div ref={searchRef} className="relative flex-1 min-w-0 max-w-sm"> 
         <div
           className="flex items-center gap-2 px-4 py-3 rounded-2xl"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
@@ -195,7 +195,7 @@ export function Topbar({
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+   <div className="flex shrink-0 items-center gap-2 sm:gap-4">
         <button
           onClick={() => router.push('/dashboard/sos')}
           aria-label={`Notifikasi SOS${openCount > 0 ? `, ${openCount} belum ditangani` : ''}`}

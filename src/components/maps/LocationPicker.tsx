@@ -19,22 +19,32 @@ export default function LocationPicker({
   readonly = false,
   height = '400px',
 }: LocationPickerProps) {
-  const mapRef       = useRef<HTMLDivElement>(null);
-  const leafletRef   = useRef<any>(null);
+    const mapRef         = useRef<HTMLDivElement>(null);
+  const leafletRef     = useRef<any>(null);
   const mapInstanceRef = useRef<any>(null);
-  const markerRef    = useRef<any>(null);
-  const circleRef    = useRef<any>(null);
+  const markerRef      = useRef<any>(null);
+  const circleRef      = useRef<any>(null);
 
-  const [lat, setLat]     = useState(initialLat);
-  const [lng, setLng]     = useState(initialLng);
-  const [radius, setRadius] = useState(initialRadius);
+  const [lat, setLat]         = useState(initialLat);
+  const [lng, setLng]         = useState(initialLng);
+  const [radius, setRadius]   = useState(initialRadius);
   const [isReady, setIsReady] = useState(false);
+
+  // Handler Leaflet dibuat sekali, jadi baca nilai terbaru lewat ref
+  const radiusRef   = useRef(initialRadius);
+  const onChangeRef = useRef(onLocationChange);
+  useEffect(() => { radiusRef.current = radius; }, [radius]);
+  useEffect(() => { onChangeRef.current = onLocationChange; });
 
   // Init Leaflet — harus dynamic import karena butuh window
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
+    let cancelled = false;
 
     import('leaflet').then((L) => {
+      // Dev (StrictMode) menjalankan effect 2x: effect yang sudah dibatalkan
+      // tidak boleh membuat map kedua di container yang sama.
+      if (cancelled || mapInstanceRef.current || !mapRef.current) return;
       leafletRef.current = L;
 
       // Fix default marker icon path (known issue dengan bundler)
@@ -45,25 +55,21 @@ export default function LocationPicker({
         shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       });
 
-      // Buat map instance
-      const map = L.map(mapRef.current!, {
+      const map = L.map(mapRef.current, {
         center: [initialLat, initialLng],
         zoom: 16,
         zoomControl: true,
       });
 
-      // OpenStreetMap tile layer (gratis, tidak butuh API key)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
-      // Marker awal
       const marker = L.marker([initialLat, initialLng], {
         draggable: !readonly,
       }).addTo(map);
 
-      // Circle geofencing awal
       const circle = L.circle([initialLat, initialLng], {
         radius:      initialRadius,
         color:       '#131316',
@@ -72,7 +78,6 @@ export default function LocationPicker({
         weight:      2,
       }).addTo(map);
 
-      // Event: klik peta untuk pindah marker (hanya kalau bukan readonly)
       if (!readonly) {
         map.on('click', (e: any) => {
           const { lat: newLat, lng: newLng } = e.latlng;
@@ -80,23 +85,22 @@ export default function LocationPicker({
           circle.setLatLng([newLat, newLng]);
           setLat(parseFloat(newLat.toFixed(7)));
           setLng(parseFloat(newLng.toFixed(7)));
-          onLocationChange?.(
+          onChangeRef.current?.(
             parseFloat(newLat.toFixed(7)),
             parseFloat(newLng.toFixed(7)),
-            radius,
+            radiusRef.current,
           );
         });
 
-        // Event: drag marker
         marker.on('dragend', (e: any) => {
           const { lat: newLat, lng: newLng } = e.target.getLatLng();
           circle.setLatLng([newLat, newLng]);
           setLat(parseFloat(newLat.toFixed(7)));
           setLng(parseFloat(newLng.toFixed(7)));
-          onLocationChange?.(
+          onChangeRef.current?.(
             parseFloat(newLat.toFixed(7)),
             parseFloat(newLng.toFixed(7)),
-            radius,
+            radiusRef.current,
           );
         });
       }
@@ -108,6 +112,7 @@ export default function LocationPicker({
     });
 
     return () => {
+      cancelled = true;
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
     };

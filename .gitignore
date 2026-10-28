@@ -56,3 +56,6 @@ next-env.d.ts
 *.jks
 *.keystore
 android/keystore.properties
+
+# File akun lokal
+List akun patrol app.txt

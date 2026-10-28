@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useFetch } from '@/lib/hooks/useFetch';
 import { PhotoCapture } from '@/components/ui/PhotoCapture';
 import { getCurrentPosition, type BridgePosition } from '@/lib/native/geolocation';
+import { haversineDistance } from '@/lib/utils/geo';
 
 interface TodayAttendance {
   id: string;
@@ -30,6 +31,7 @@ interface Location {
   latitude: string;
   longitude: string;
   radius_meters: number | null;
+  is_active?: boolean | null;
 }
 
 const statusLabel: Record<string, string> = {
@@ -61,6 +63,7 @@ export default function EmployeeAttendancePage() {
   const [currentPos, setCurrentPos]     = useState<BridgePosition | null>(null);
   const [photoBase64, setPhotoBase64]   = useState<string>('placeholder');
   const [photoUrl,    setPhotoUrl]      = useState<string>('');
+  const [selectedLocId, setSelectedLocId] = useState<string | null>(null); // null = otomatis terdekat
 
   // Ambil posisi GPS saat halaman dibuka
   useEffect(() => {
@@ -73,7 +76,46 @@ export default function EmployeeAttendancePage() {
 
   const isCheckedIn  = !!today?.check_in_time;
   const isCheckedOut = !!today?.check_out_time;
-  const defaultLoc   = locations?.[0];
+
+  // Pilih lokasi aktif TERDEKAT dari posisi user (bukan locations[0])
+  const nearest = useMemo<{ loc: Location; distance: number | null } | null>(() => {
+    const active = (locations ?? []).filter((l) => l.is_active !== false);
+    if (active.length === 0) return null;
+    if (!currentPos) return { loc: active[0], distance: null };
+
+    const { latitude, longitude } = currentPos.coords;
+    let best = active[0];
+    let bestDist = Infinity;
+    for (const l of active) {
+      const d = haversineDistance(latitude, longitude, Number(l.latitude), Number(l.longitude));
+      if (d < bestDist) {
+        best = l;
+        bestDist = d;
+      }
+    }
+    return { loc: best, distance: Math.round(bestDist) };
+  }, [locations, currentPos]);
+
+  const activeLocs = useMemo(
+  () => (locations ?? []).filter((l) => l.is_active !== false),
+  [locations],
+);
+
+const defaultLoc = activeLocs.find((l) => l.id === selectedLocId) ?? nearest?.loc;
+
+const distanceToLoc =
+  defaultLoc && currentPos
+    ? Math.round(
+        haversineDistance(
+          currentPos.coords.latitude,
+          currentPos.coords.longitude,
+          Number(defaultLoc.latitude),
+          Number(defaultLoc.longitude),
+        ),
+      )
+    : null;
+
+const radiusOfLoc = defaultLoc?.radius_meters ?? 100;
 
   async function handleCheckIn() {
     if (!currentPos) {
@@ -225,11 +267,35 @@ export default function EmployeeAttendancePage() {
         ) : (
           <>
             <h2 className="text-lg font-bold mb-1">Belum Check-in</h2>
-            <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
               {currentPos
                 ? `GPS aktif — Akurasi: ±${Math.round(currentPos.coords.accuracy)}m`
                 : 'Mendapatkan lokasi GPS...'}
             </p>
+            {defaultLoc && distanceToLoc !== null && (
+              <p
+                className="text-xs font-semibold mb-3"
+                style={{
+                  color: distanceToLoc <= radiusOfLoc
+                    ? 'var(--status-success-text)'
+                    : 'var(--status-danger-text)',
+                }}
+              >
+                Jarak ke lokasi: {distanceToLoc}m (radius {radiusOfLoc}m)
+              </p>
+            )}
+            {activeLocs.length > 1 && (
+  <select
+    value={defaultLoc?.id ?? ''}
+    onChange={(e) => setSelectedLocId(e.target.value)}
+    className="w-full mb-3 px-3 py-2 rounded-xl text-xs font-semibold"
+    style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+  >
+    {activeLocs.map((l) => (
+      <option key={l.id} value={l.id}>{l.name}</option>
+    ))}
+  </select>
+)}
             <div className="mb-4 w-full">
               <PhotoCapture
                 label="Ambil Selfie untuk Check-in"

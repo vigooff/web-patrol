@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { attendances, locations } from '@/db/schema';
+import { attendances } from '@/db/schema';
 import { requireAuth } from '@/lib/utils/auth-guard';
+import { todayWIB } from '@/lib/utils/date';
 import { eq, and } from 'drizzle-orm';
 
-// GET — status absensi hari ini untuk user yang sedang login
+// GET: status absensi hari ini untuk user yang sedang login
 export async function GET(req: NextRequest) {
   const { session, error } = await requireAuth(req);
   if (error) return error;
 
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayWIB();
 
     const [attendance] = await db
       .select({

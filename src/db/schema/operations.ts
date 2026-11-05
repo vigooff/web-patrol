@@ -135,7 +135,16 @@ export const patrols = pgTable('patrols', {
   // "ongoing" | "completed"
   status:                varchar('status', { length: 20 }).default('ongoing'),
   total_distance_meters: integer('total_distance_meters').default(0),
-  notes:                 text('notes'),
+    notes:                 text('notes'),
+
+  // Penandaan hasil patroli untuk ditinjau admin/PT (diisi saat patroli diakhiri)
+  // review_status: "none" | "pending" | "reviewed"
+  // review_reasons: no_checkpoint | no_scan | incomplete | invalid_scan
+  review_status:         varchar('review_status', { length: 20 }).notNull().default('none'),
+  review_reasons:        text('review_reasons').array(),
+  reviewed_by:           uuid('reviewed_by').references(() => users.id),
+  reviewed_at:           timestamp('reviewed_at'),
+  review_note:           text('review_note'),
 
   created_at:            timestamp('created_at').defaultNow().notNull(),
 });

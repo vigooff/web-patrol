@@ -24,10 +24,17 @@ export async function POST(req: NextRequest) {
 
     const { location_id, latitude, longitude } = parsed.data;
 
+    // Multi-tenant: lokasi harus milik company user dan masih aktif
     const [location] = await db
       .select()
       .from(locations)
-      .where(eq(locations.id, location_id))
+      .where(
+        and(
+          eq(locations.id, location_id),
+          eq(locations.company_id, session!.user.company_id),
+          eq(locations.is_active, true),
+        ),
+      )
       .limit(1);
 
     if (!location) {

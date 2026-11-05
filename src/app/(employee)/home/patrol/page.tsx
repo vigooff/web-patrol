@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useFetch } from '@/lib/hooks/useFetch';
 import {
   Play, Square, ScanLine, CheckCircle2,
@@ -14,6 +14,7 @@ interface Location {
   latitude: string;
   longitude: string;
   radius_meters: number | null;
+  is_active?: boolean;
 }
 
 interface Checkpoint {
@@ -39,6 +40,18 @@ interface PatrolLog {
 
 type Phase = 'idle' | 'active' | 'scanning' | 'completed';
 
+// Jarak dua titik GPS dalam meter (haversine)
+function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 export default function EmployeePatrolPage() {
   const { data: locations } = useFetch<Location[]>('/api/v1/locations');
 
@@ -56,7 +69,24 @@ export default function EmployeePatrolPage() {
   const timerIntervalRef  = useRef<NodeJS.Timeout | null>(null);
   const trackBatchRef     = useRef<Array<{ latitude: number; longitude: number; recorded_at: string }>>([]);
 
-  const defaultLoc = locations?.[0];
+  // Lokasi aktif TERDEKAT dari posisi GPS (bukan locations[0])
+  const nearestLoc = useMemo(() => {
+    if (!locations || !currentPos) return undefined;
+    let best: Location | undefined;
+    let bestDist = Infinity;
+    for (const l of locations) {
+      if (l.is_active === false) continue;
+      const d = distanceMeters(currentPos.lat, currentPos.lng, Number(l.latitude), Number(l.longitude));
+      if (d < bestDist) { best = l; bestDist = d; }
+    }
+    return best;
+  }, [locations, currentPos]);
+
+  // Saat patroli berjalan, kunci ke lokasi sesi supaya tidak berpindah ikut GPS
+  const defaultLoc = patrol
+    ? locations?.find((l) => l.id === patrol.location_id) ?? nearestLoc
+    : nearestLoc;
+
   const doneCount  = logs.filter((l) => l.is_valid).length;
   const totalCount = checkpoints.length;
   const progress   = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;

@@ -11,6 +11,13 @@ const endPatrolSchema = z.object({
 
 type Params = { params: Promise<{ id: string }> }; // id = patrol_id
 
+// Kode alasan hasil patroli ditandai "perlu ditinjau" admin/PT:
+// - no_checkpoint : lokasi belum punya checkpoint terdaftar (masalah konfigurasi)
+// - no_scan       : ada checkpoint, tetapi tidak ada satu pun yang discan
+// - incomplete    : ada checkpoint yang belum discan sama sekali
+// - invalid_scan  : ada scan di luar jarak titik checkpoint yang belum diperbaiki
+type ReviewReason = 'no_checkpoint' | 'no_scan' | 'incomplete' | 'invalid_scan';
+
 // POST — akhiri sesi patroli
 export async function POST(req: NextRequest, { params }: Params) {
   const { session, error } = await requireAuth(req);
@@ -54,38 +61,82 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
     }
 
-    // Hitung ringkasan: berapa checkpoint yang berhasil di-scan vs total checkpoint di lokasi
-    const totalCheckpoints = await db
-      .select()
+    // Ringkasan: checkpoint di lokasi vs log scan pada sesi ini
+    const checkpointRows = await db
+      .select({ id: patrol_checkpoints.id })
       .from(patrol_checkpoints)
       .where(eq(patrol_checkpoints.location_id, patrol.location_id));
 
-    const scannedLogs = await db
-      .select()
+    const logRows = await db
+      .select({
+        checkpoint_id: patrol_logs.checkpoint_id,
+        is_valid:      patrol_logs.is_valid,
+      })
       .from(patrol_logs)
       .where(eq(patrol_logs.patrol_id, patrolId));
+
+    const total         = checkpointRows.length;
+    const checkpointIds = new Set(checkpointRows.map((c) => c.id));
+    const scannedAny    = new Set<string>(); // checkpoint yang punya log (valid/invalid)
+    const scannedValid  = new Set<string>(); // checkpoint yang punya log valid
+    let   invalidCount  = 0;
+
+    for (const log of logRows) {
+      if (!checkpointIds.has(log.checkpoint_id)) continue;
+      scannedAny.add(log.checkpoint_id);
+      if (log.is_valid === false) invalidCount += 1;
+      else scannedValid.add(log.checkpoint_id);
+    }
+
+    const reasons: ReviewReason[] = [];
+    if (total === 0) {
+      reasons.push('no_checkpoint');
+    } else {
+      if (scannedAny.size === 0)         reasons.push('no_scan');
+      else if (scannedAny.size < total)  reasons.push('incomplete');
+      if (invalidCount > 0)              reasons.push('invalid_scan');
+    }
+    const needsReview = reasons.length > 0;
 
     const [updated] = await db
       .update(patrols)
       .set({
-        end_time: new Date(),
-        status:   'completed',
-        notes:    parsed.data.notes,
+        end_time:       new Date(),
+        status:         'completed',
+        notes:          parsed.data.notes,
+        review_status:  needsReview ? 'pending' : 'none',
+        review_reasons: needsReview ? reasons : null,
       })
-      .where(eq(patrols.id, patrolId))
+      .where(
+        and(
+          eq(patrols.id, patrolId),
+          eq(patrols.status, 'ongoing'),
+        ),
+      )
       .returning();
+
+    // Dua permintaan "akhiri" bersamaan: yang kedua tidak menemukan sesi ongoing
+    if (!updated) {
+      return NextResponse.json(
+        { success: false, error: 'Sesi patroli sudah diakhiri sebelumnya' },
+        { status: 422 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        patrol_id:            updated.id,
-        end_time:             updated.end_time,
+        patrol_id:             updated.id,
+        end_time:              updated.end_time,
         total_distance_meters: updated.total_distance_meters,
-        checkpoints_scanned:  scannedLogs.length,
-        checkpoints_total:    totalCheckpoints.length,
-        completion_rate: totalCheckpoints.length > 0
-          ? Math.round((scannedLogs.length / totalCheckpoints.length) * 100)
-          : null,
+        checkpoints_total:     total,
+        checkpoints_scanned:   scannedValid.size, // hanya scan yang valid
+        checkpoints_invalid:   invalidCount,
+        completion_rate:       total > 0
+          ? Math.round((scannedValid.size / total) * 100)
+          : 0,
+        needs_review:          needsReview,
+        review_reasons:        reasons,
       },
     });
 

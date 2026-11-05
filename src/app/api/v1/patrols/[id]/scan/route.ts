@@ -76,8 +76,10 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
     }
 
-    // Cek apakah checkpoint ini sudah pernah di-scan di sesi yang sama (anti scan dobel)
-    const [alreadyScanned] = await db
+    // Cek apakah checkpoint ini sudah pernah di-scan di sesi yang sama.
+    // Scan yang sudah VALID tidak boleh diulang (anti scan dobel).
+    // Scan yang INVALID (di luar jarak) boleh diulang untuk memperbaiki: log lama diganti.
+    const [existing] = await db
       .select()
       .from(patrol_logs)
       .where(
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       )
       .limit(1);
 
-    if (alreadyScanned) {
+    if (existing && existing.is_valid !== false) {
       return NextResponse.json(
         { success: false, error: 'Checkpoint ini sudah di-scan sebelumnya di sesi ini' },
         { status: 409 },
@@ -106,29 +108,42 @@ export async function POST(req: NextRequest, { params }: Params) {
       isValid = distance <= 30;
     }
 
-    const [log] = await db
-      .insert(patrol_logs)
-      .values({
-        patrol_id:     patrolId,
-        checkpoint_id: checkpoint.id,
-        latitude:      String(latitude),
-        longitude:     String(longitude),
-        photo_url,
-        is_valid:      isValid,
-      })
-      .returning();
+    const logValues = {
+      scanned_at: new Date(),
+      latitude:   String(latitude),
+      longitude:  String(longitude),
+      photo_url,
+      is_valid:   isValid,
+    };
+
+    const [log] = existing
+      ? await db
+          .update(patrol_logs)
+          .set(logValues)
+          .where(eq(patrol_logs.id, existing.id))
+          .returning()
+      : await db
+          .insert(patrol_logs)
+          .values({
+            patrol_id:     patrolId,
+            checkpoint_id: checkpoint.id,
+            ...logValues,
+          })
+          .returning();
 
     return NextResponse.json({
       success: true,
       data: {
         log_id:          log.id,
+        checkpoint_id:   checkpoint.id,
         checkpoint_name: checkpoint.name,
         is_valid:        isValid,
+        rescanned:       Boolean(existing),
         warning: !isValid
           ? 'Lokasi scan cukup jauh dari titik checkpoint terdaftar'
           : null,
       },
-    }, { status: 201 });
+    }, { status: existing ? 200 : 201 });
 
   } catch (err) {
     console.error('[patrols/:id/scan] error:', err);
